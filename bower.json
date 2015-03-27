@@ -1,23 +1,25 @@
 {
-	"name": "jwtstore",
-	"version": "1.0.0",
-	"authors": [
-		"Erik Beeson <erik.beeson@gmail.com>"
-	],
-	"main": "dist/jwtstore.js",
-	"moduleType": [
-		"amd"
-	],
-	"license": "MIT",
-	"ignore": [
-		"**/.*",
-		"node_modules",
-		"bower_components",
-		"test",
-		"tests"
-	],
-	"dependencies": {
-		"almond": "~0.3.1",
-		"eventEmitter": "~4.2.11"
-	}
+  "name": "jwtstore",
+  "version": "1.0.1",
+  "authors": [
+    "Erik Beeson <erik.beeson@gmail.com>"
+  ],
+  "main": "dist/jwtstore.js",
+  "moduleType": [
+    "amd"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "eventEmitter": "~4.2.11"
+  },
+  "devDependencies": {
+    "almond": "~0.3.1"
+  }
 }
