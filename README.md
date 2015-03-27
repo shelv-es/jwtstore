@@ -1,1 +1,1 @@
-# jwtstore
+# JWTStore

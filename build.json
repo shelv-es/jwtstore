@@ -1,0 +1,11 @@
+{
+    baseUrl: '.',
+    name: 'bower_components/almond/almond.js',
+    include: ['jwtstore'],
+    out: 'dist/jwtstore.js',
+    mainConfigFile: 'require.config.js',
+    wrap: {
+        startFile: 'src/start.frag.js',
+        endFile: 'src/end.frag.js'
+    }
+}
