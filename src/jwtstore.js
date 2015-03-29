@@ -21,7 +21,7 @@ define(['EventEmitter'], function(EventEmitter) {
 	function JWTStore(prefix) {
 		prefix = 'jwtstore::' + (prefix || 'default') + '::';
 
-		var timers = this._timers = {};
+		var timers = {};
 
 		var localStorageForEach = function(callback, owner) {
 			var items = [];
