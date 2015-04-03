@@ -4,7 +4,7 @@
   "authors": [
     "Erik Beeson <erik.beeson@gmail.com>"
   ],
-  "main": "dist/jwtstore.js",
+  "main": "src/jwtstore.js",
   "moduleType": [
     "amd"
   ],
