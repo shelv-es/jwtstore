@@ -49,13 +49,14 @@ define(['eventEmitter'], function(EventEmitter) {
 		['on', 'once', 'off'].forEach(function(f) {
 			[EVENT_ADDED, EVENT_REMOVED, EVENT_CHANGED, EVENT_EXPIRING].forEach(function(e) {
 				this[f + e.charAt(0).toUpperCase() + e.slice(1)] = function(callback) {
-					emitter[f](e, callback);
+					emitter[f](e, callback.bind(this));
 					return this;
 				};
 			}, this);
 		}, this);
 
 		this.onAdded = function(callback) {
+			callback = callback.bind(this);
 			emitter[f](EVENT_ADDED, callback);
 			localStorageForEach(function(key, token) {
 				setTimout(function() {
