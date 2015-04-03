@@ -1,6 +1,6 @@
 var require = {
 	paths: {
-		EventEmitter: 'bower_components/eventEmitter/EventEmitter',
+		eventEmitter: 'bower_components/eventEmitter/EventEmitter',
 		jwtstore: 'src/jwtstore'
 	}
 };

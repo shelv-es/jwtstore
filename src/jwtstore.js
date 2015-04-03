@@ -3,7 +3,7 @@
  * (c) Erik Beeson - https://github.com/shelv-es/jwtstore
  * License: MIT (http://www.opensource.org/licenses/mit-license.php)
  */
-define(['EventEmitter'], function(EventEmitter) {
+define(['eventEmitter'], function(EventEmitter) {
 	var parseJWT = function(token) { // todo: improve robustness of this parsing
 		return token ? JSON.parse(atob(token.split('.')[1])) : token; // https://gist.github.com/katowulf/6231937
 	};
