@@ -34,16 +34,16 @@
 
 		var timers = {};
 
-		var localStorageForEach = function(callback, owner) {
+		this.forEach = function(callback, owner) {
 			var items = [];
-			for(var i = 0; i < localStorage.length; i++) { // race condition?
+			for(var i = 0; i < localStorage.length; i++) {
 				var key = localStorage.key(i);
-				if(key.indexOf(prefix) === 0) {
+				if(key != null && key.startsWith(prefix)) {
 					items.push([key.slice(prefix.length), localStorage.getItem(key)]);
 				}
 			}
 
-			debug('localStorageForEach', items);
+			debug('forEach', items);
 
 			items.forEach(function(item) {
 				callback.apply(owner, item);
@@ -64,7 +64,7 @@
 		this.onAdded = function(callback) {
 			callback = callback.bind(this);
 			emitter[f](EVENT_ADDED, callback);
-			localStorageForEach(function(key, token) {
+			this.forEach(function(key, token) {
 				setTimout(function() {
 					callback(key, token, parseJWT(token));
 				}, 5);
@@ -157,7 +157,7 @@
 			}
 		});
 
-		localStorageForEach(function(key, token) {
+		this.forEach(function(key, token) {
 			debug('init', key, token);
 			var data = parseJWT(token);
 			if(data && data.exp) {
