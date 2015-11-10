@@ -10,6 +10,37 @@
 		root.JWTStore = factory(root.EventEmitter);
 	}
 }(this, function(EventEmitter) {
+	var SimpleMap = function() {
+		var keys = [];
+		var values = [];
+		
+		this.has = function(key) {
+			return keys.indexOf(key) >= 0;
+		};
+		this.put = function(key, value) {
+			var idx = keys.indexOf(key);
+			if(idx >= 0) {
+				var v = values[idx];
+				values[idx] = value;
+				return v;
+			} else {
+				keys.push(key);
+				values.push(value);
+			}
+		};
+		this.get = function(key) {
+			var idx = keys.indexOf(key);
+			if(idx >= 0) return values[idx];
+		};
+		this.remove = function(key) {
+			var idx = keys.indexOf(key);
+			if(idx >= 0) {
+				keys.splice(idx, 1);
+				return values.splice(idx, 1)[0];
+			}
+		};
+	};
+
 	var parseJWT = function(token) { // todo: improve robustness of this parsing
 		return token ? JSON.parse(atob(token.split('.')[1])) : token; // https://gist.github.com/katowulf/6231937
 	};
@@ -50,29 +81,53 @@
 			});
 		};
 
+		this.removeAll = function() {
+			this.forEach(function(key) {
+				this.removeToken(key);
+			}, this);
+		};
+
+		var callbacks = new SimpleMap();
 		var emitter = new EventEmitter();
 
-		['on', 'once', 'off'].forEach(function(f) {
-			[EVENT_ADDED, EVENT_REMOVED, EVENT_CHANGED, EVENT_EXPIRING].forEach(function(e) {
-				this[f + e.charAt(0).toUpperCase() + e.slice(1)] = function(callback) {
-					emitter[f](e, callback.bind(this));
-					return this;
-				};
-			}, this);
+		var bindCallback = function(callback, context) {
+			var callbackBound = callbacks.get(callback);
+			if(!callbackBound) {
+				callbackBound = callback.bind(context);
+				callbacks.put(callback, callbackBound);
+			}
+			return callbackBound;
+		};
+
+		[EVENT_REMOVED, EVENT_CHANGED, EVENT_EXPIRING].forEach(function(e) {
+			this['on' + e.charAt(0).toUpperCase() + e.slice(1)] = function(callback) {
+				emitter.on(e, bindCallback(callback, this));
+				return this;
+			};
+		}, this);
+
+		[EVENT_ADDED, EVENT_REMOVED, EVENT_CHANGED, EVENT_EXPIRING].forEach(function(e) {
+			this['off' + e.charAt(0).toUpperCase() + e.slice(1)] = function(callback) {
+				var callbackBound = callbacks.get(callback);
+				if(callbackBound) {
+					emitter.off(e, callbackBound);
+				}
+				return this;
+			};
 		}, this);
 
 		this.onAdded = function(callback) {
-			callback = callback.bind(this);
-			emitter[f](EVENT_ADDED, callback);
+			callback = bindCallback(callback, this);
+			emitter.on(EVENT_ADDED, callback);
 			this.forEach(function(key, token) {
-				setTimout(function() {
+				setTimeout(function() {
 					callback(key, token, parseJWT(token));
 				}, 5);
 			});
 			return this;
 		};
 
-		var getToken, setToken, removeToken;
+		var setToken, removeToken;
 
 		var updater = function(key) {
 			return function(token) {
@@ -80,7 +135,7 @@
 			};
 		};
 
-		getToken = this.getToken = function(key) {
+		this.getToken = function(key) {
 			key = key || '';
 			debug('getToken', key);
 			var token = localStorage.getItem(prefix + key);
@@ -113,6 +168,7 @@
 		};
 
 		removeToken = this.removeToken = function(key) {
+			key = key || '';
 			debug('removeToken', key);
 			localStorage.removeItem(prefix + key);
 			clearTimeout(timers[key]);
