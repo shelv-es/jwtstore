@@ -165,6 +165,7 @@
 					emitter.emit(EVENT_EXPIRING, key, token, data, updater(key));
 				}, (expiresIn - Math.round((Math.random()*30)+15))*1000);
 			}
+			emitter.emit(EVENT_ADDED, key, token, data);
 		};
 
 		removeToken = this.removeToken = function(key) {
@@ -172,6 +173,7 @@
 			debug('removeToken', key);
 			clearTimeout(timers[key]);
 			localStorage.removeItem(prefix + key);
+			emitter.emit(EVENT_REMOVED, key);
 		};
 
 		(function(handler) {
