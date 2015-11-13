@@ -155,8 +155,8 @@
 		setToken = this.setToken = function(key, token) {
 			key = key || '';
 			debug('setToken', key, token);
-			localStorage.setItem(prefix + key, token);
 			clearTimeout(timers[key]);
+			localStorage.setItem(prefix + key, token);
 			var data = parseJWT(token);
 			var expiresIn = data.exp - Math.round(Date.now()/1000);
 			debug('setToken expiresIn', expiresIn);
@@ -170,8 +170,8 @@
 		removeToken = this.removeToken = function(key) {
 			key = key || '';
 			debug('removeToken', key);
-			localStorage.removeItem(prefix + key);
 			clearTimeout(timers[key]);
+			localStorage.removeItem(prefix + key);
 		};
 
 		(function(handler) {
@@ -187,28 +187,19 @@
 				debug('storage', key, e.oldValue, e.newValue);
 				clearTimeout(timers[key]);
 				var token = e.newValue;
-				if(e.oldValue == null) {
-					var data = parseJWT(token);
-					var expiresIn = data.exp - Math.round(Date.now()/1000);
-					debug('localStorage added expiresIn', expiresIn);
-					if(expiresIn >= 60) {
-						timers[key] = setTimeout(function() {
-							emitter.emit(EVENT_EXPIRING, key, token, data, updater(key));
-						}, (expiresIn - Math.round((Math.random()*30)+15))*1000);
-					}
-					emitter.emit(EVENT_ADDED, key, token, data);
-				} else if(e.newValue == null) {
+				if(token == null) {
 					emitter.emit(EVENT_REMOVED, key);
 				} else {
+					var eventName = (e.oldValue == null ? EVENT_ADDED : EVENT_CHANGED);
 					var data = parseJWT(token);
 					var expiresIn = data.exp - Math.round(Date.now()/1000);
-					debug('localStorage changed expiresIn', expiresIn);
+					debug('localStorage', eventName, 'expiresIn', expiresIn);
 					if(expiresIn >= 60) {
 						timers[key] = setTimeout(function() {
 							emitter.emit(EVENT_EXPIRING, key, token, data, updater(key));
 						}, (expiresIn - Math.round((Math.random()*30)+15))*1000);
 					}
-					emitter.emit(EVENT_CHANGED, key, token, data);
+					emitter.emit(eventName, key, token, data);
 				}
 			}
 		});
