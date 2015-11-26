@@ -210,9 +210,7 @@
 			if(data && data.exp) {
 				var expiresIn = data.exp - Math.round(Date.now()/1000);
 				debug('init expiresIn', expiresIn);
-				if(expiresIn < 0) {
-					localStorage.removeItem(prefix + key);
-				} else if(expiresIn < 60) {
+				if(expiresIn < 60) {
 					setTimeout(function() {
 						emitter.emit(EVENT_EXPIRING, key, token, data, updater(key));
 					}, 5);
