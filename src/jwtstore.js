@@ -45,9 +45,8 @@
 		return token ? JSON.parse(atob(token.split('.')[1])) : token; // https://gist.github.com/katowulf/6231937
 	};
 
-	var EVENT_ADDED = 'added';
+	var EVENT_VALUE = 'value';
 	var EVENT_REMOVED = 'removed';
-	var EVENT_CHANGED = 'changed';
 	var EVENT_EXPIRING = 'expiring';
 
 	JWTStore.DEBUG = false;
@@ -99,14 +98,14 @@
 			return callbackBound;
 		};
 
-		[EVENT_REMOVED, EVENT_CHANGED, EVENT_EXPIRING].forEach(function(e) {
+		[EVENT_REMOVED, EVENT_EXPIRING].forEach(function(e) {
 			this['on' + e.charAt(0).toUpperCase() + e.slice(1)] = function(callback) {
 				emitter.on(e, bindCallback(callback, this));
 				return this;
 			};
 		}, this);
 
-		[EVENT_ADDED, EVENT_REMOVED, EVENT_CHANGED, EVENT_EXPIRING].forEach(function(e) {
+		[EVENT_VALUE, EVENT_REMOVED, EVENT_EXPIRING].forEach(function(e) {
 			this['off' + e.charAt(0).toUpperCase() + e.slice(1)] = function(callback) {
 				var callbackBound = callbacks.get(callback);
 				if(callbackBound) {
@@ -116,9 +115,9 @@
 			};
 		}, this);
 
-		this.onAdded = function(callback) {
+		this.onValue = function(callback) {
 			callback = bindCallback(callback, this);
-			emitter.on(EVENT_ADDED, callback);
+			emitter.on(EVENT_VALUE, callback);
 			this.forEach(function(key, token) {
 				setTimeout(function() {
 					callback(key, token, parseJWT(token));
@@ -165,7 +164,7 @@
 					emitter.emit(EVENT_EXPIRING, key, token, data, updater(key));
 				}, (expiresIn - Math.round((Math.random()*30)+15))*1000);
 			}
-			emitter.emit(EVENT_ADDED, key, token, data);
+			emitter.emit(EVENT_VALUE, key, token, data);
 		};
 
 		removeToken = this.removeToken = function(key) {
@@ -192,7 +191,6 @@
 				if(token == null) {
 					emitter.emit(EVENT_REMOVED, key);
 				} else {
-					var eventName = (e.oldValue == null ? EVENT_ADDED : EVENT_CHANGED);
 					var data = parseJWT(token);
 					var expiresIn = data.exp - Math.round(Date.now()/1000);
 					debug('localStorage', eventName, 'expiresIn', expiresIn);
@@ -201,7 +199,7 @@
 							emitter.emit(EVENT_EXPIRING, key, token, data, updater(key));
 						}, (expiresIn - Math.round((Math.random()*30)+15))*1000);
 					}
-					emitter.emit(eventName, key, token, data);
+					emitter.emit(EVENT_VALUE, key, token, data);
 				}
 			}
 		});
