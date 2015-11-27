@@ -63,6 +63,24 @@
 		prefix = 'jwtstore::' + (prefix || 'default') + '::';
 
 		var timers = {};
+		var callbacks = new SimpleMap();
+		var emitter = new EventEmitter();
+		var setToken, removeToken;
+
+		var updater = function(key) {
+			return function(token) {
+				setToken(key, token);
+			};
+		};
+
+		var bindCallback = function(callback, context) {
+			var callbackBound = callbacks.get(callback);
+			if(!callbackBound) {
+				callbackBound = callback.bind(context);
+				callbacks.put(callback, callbackBound);
+			}
+			return callbackBound;
+		};
 
 		this.forEach = function(callback, owner) {
 			var items = [];
@@ -86,25 +104,6 @@
 			}, this);
 		};
 
-		var callbacks = new SimpleMap();
-		var emitter = new EventEmitter();
-
-		var bindCallback = function(callback, context) {
-			var callbackBound = callbacks.get(callback);
-			if(!callbackBound) {
-				callbackBound = callback.bind(context);
-				callbacks.put(callback, callbackBound);
-			}
-			return callbackBound;
-		};
-
-		[EVENT_REMOVED, EVENT_EXPIRING].forEach(function(e) {
-			this['on' + e.charAt(0).toUpperCase() + e.slice(1)] = function(callback) {
-				emitter.on(e, bindCallback(callback, this));
-				return this;
-			};
-		}, this);
-
 		[EVENT_VALUE, EVENT_REMOVED, EVENT_EXPIRING].forEach(function(e) {
 			this['off' + e.charAt(0).toUpperCase() + e.slice(1)] = function(callback) {
 				var callbackBound = callbacks.get(callback);
@@ -119,19 +118,35 @@
 			callback = bindCallback(callback, this);
 			emitter.on(EVENT_VALUE, callback);
 			this.forEach(function(key, token) {
-				setTimeout(function() {
-					callback(key, token, parseJWT(token));
-				}, 5);
+				var data = parseJWT(token);
+				var expiresIn = data.exp - Math.round(Date.now()/1000);
+				if(expiresIn >= 60) { // if it isn't about to expire, trigger immediately (async)
+					setTimeout(function() {
+						callback(key, token, data);
+					}, 5);
+				}
 			});
 			return this;
 		};
 
-		var setToken, removeToken;
+		this.onRemoved = function(callback) {
+			emitter.on(EVENT_REMOVED, bindCallback(callback, this));
+			return this;
+		};
 
-		var updater = function(key) {
-			return function(token) {
-				setToken(key, token);
-			};
+		this.onExpiring = function(callback) {
+			callback = bindCallback(callback, this);
+			emitter.on(EVENT_EXPIRING, callback);
+			this.forEach(function(key, token) {
+				var data = parseJWT(token);
+				var expiresIn = data.exp - Math.round(Date.now()/1000);
+				if(expiresIn < 60) { // if it's about to expire, trigger immediately (async)
+					setTimeout(function() {
+						callback(key, token, data, updater(key));
+					}, 5);
+				}
+			});
+			return this;
 		};
 
 		this.getToken = function(key) {
@@ -204,17 +219,13 @@
 			}
 		});
 
-		this.forEach(function(key, token) {
+		this.forEach(function(key, token) { // schedule tokens for refresh that aren't expiring soon
 			debug('init', key, token);
 			var data = parseJWT(token);
 			if(data && data.exp) {
 				var expiresIn = data.exp - Math.round(Date.now()/1000);
 				debug('init expiresIn', expiresIn);
-				if(expiresIn < 60) {
-					setTimeout(function() {
-						emitter.emit(EVENT_EXPIRING, key, token, data, updater(key));
-					}, 5);
-				} else {
+				if(expiresIn >= 60) {
 					timers[key] = setTimeout(function() {
 						emitter.emit(EVENT_EXPIRING, key, token, data, updater(key));
 					}, (expiresIn - Math.round((Math.random()*30)+15))*1000);
