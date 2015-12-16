@@ -1,6 +1,6 @@
 {
   "name": "jwtstore",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "authors": [
     "Erik Beeson <erik.beeson@gmail.com>"
   ],
@@ -17,9 +17,9 @@
     "tests"
   ],
   "dependencies": {
-    "eventEmitter": "~4.2.11"
+    "eventEmitter": "~4.3"
   },
   "devDependencies": {
-    "almond": "~0.3.1"
+    "almond": "~0.3"
   }
 }
