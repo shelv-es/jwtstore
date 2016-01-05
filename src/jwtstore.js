@@ -13,7 +13,7 @@
 	var SimpleMap = function() {
 		var keys = [];
 		var values = [];
-		
+
 		this.has = function(key) {
 			return keys.indexOf(key) >= 0;
 		};
@@ -208,7 +208,7 @@
 				} else {
 					var data = parseJWT(token);
 					var expiresIn = data.exp - Math.round(Date.now()/1000);
-					debug('localStorage', eventName, 'expiresIn', expiresIn);
+					debug('storage', 'expiresIn', expiresIn);
 					if(expiresIn >= 60) {
 						timers[key] = setTimeout(function() {
 							emitter.emit(EVENT_EXPIRING, key, token, data, updater(key));
