@@ -100,6 +100,6 @@ To enable debug logging to `console.log`, set `JWTStore.DEBUG = true;`.
 
 ## License
 
-Copyright (c) 2015 Erik Beeson
+Copyright (c) 2016 Erik Beeson
 
 MIT License (see LICENSE file)
