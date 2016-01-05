@@ -12,7 +12,7 @@
  */
 
 /*!
- * JWTStore v1.2.0
+ * JWTStore v1.2.1
  * (c) Erik Beeson - https://github.com/shelv-es/jwtstore
  * License: MIT (http://www.opensource.org/licenses/mit-license.php)
  */
